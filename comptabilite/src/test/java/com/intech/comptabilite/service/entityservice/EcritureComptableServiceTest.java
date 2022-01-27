@@ -1,6 +1,7 @@
 package com.intech.comptabilite.service.entityservice;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.junit.jupiter.api.Assertions;
@@ -48,6 +49,35 @@ public class EcritureComptableServiceTest {
         vEcriture.getListLigneEcriture().add(this.createLigne(2, null, "30"));
         vEcriture.getListLigneEcriture().add(this.createLigne(2, "1", "2"));
         Assertions.assertFalse(ecritureComptableService.isEquilibree(vEcriture));
+    }
+    @Test
+    void testGetDebit() {
+        EcritureComptable vEcriture;
+        vEcriture = new EcritureComptable();
+
+        vEcriture.getListLigneEcriture().add(this.createLigne(1, "10", null));
+        vEcriture.getListLigneEcriture().add(this.createLigne(1, "20", "1"));
+        vEcriture.getListLigneEcriture().add(this.createLigne(2, null, "30"));
+        vEcriture.getListLigneEcriture().add(this.createLigne(2, "1", "2"));
+
+        BigDecimal expected = new BigDecimal(31);
+
+        Assertions.assertEquals(expected.intValue(), ecritureComptableService.getTotalDebit(vEcriture).intValue());
+    }
+
+    @Test
+    void testGetCredit() {
+        EcritureComptable vEcriture;
+        vEcriture = new EcritureComptable();
+
+        vEcriture.getListLigneEcriture().add(this.createLigne(1, "10", null));
+        vEcriture.getListLigneEcriture().add(this.createLigne(1, "20", "1"));
+        vEcriture.getListLigneEcriture().add(this.createLigne(2, null, "30"));
+        vEcriture.getListLigneEcriture().add(this.createLigne(2, "1", "2"));
+
+        BigDecimal expected = new BigDecimal(33);
+
+        Assertions.assertEquals(expected.intValue(), ecritureComptableService.getTotalCredit(vEcriture).intValue());
     }
 
 }
