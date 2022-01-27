@@ -2,6 +2,7 @@ package com.intech.comptabilite.service.businessmanager;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Set;
 
@@ -68,21 +69,35 @@ public class ComptabiliteManagerImpl implements ComptabiliteManager {
     /**
      * {@inheritDoc}
      */
-    // TODO à implémenter et à tester
     @Override
     public synchronized void addReference(EcritureComptable pEcritureComptable) {
         // Bien se réferer à la JavaDoc de cette méthode !
-        /* Le principe :
-                1.  Remonter depuis la persitance la dernière valeur de la séquence du journal pour l'année de l'écriture
-                    (table sequence_ecriture_comptable)
-                2.  * S'il n'y a aucun enregistrement pour le journal pour l'année concernée :
-                        1. Utiliser le numéro 1.
-                    * Sinon :
-                        1. Utiliser la dernière valeur + 1
-                3.  Mettre à jour la référence de l'écriture avec la référence calculée (RG_Compta_5)
-                4.  Enregistrer (insert/update) la valeur de la séquence en persitance
-                    (table sequence_ecriture_comptable)
-         */
+    	Calendar cal = new GregorianCalendar();
+        cal.setTime(pEcritureComptable.getDate());
+        int last;
+        try {
+            last = sequenceEcritureComptableService
+                    .getDernierValeurByCodeAndAnnee(pEcritureComptable.getJournal().getCode(), cal.get(Calendar.YEAR));
+        } catch (NotFoundException ex) {
+            last = 0;
+        }
+        int lengthOfLast = String.valueOf(last).length();
+        int zeroToRepeatTimes = 5 - lengthOfLast;
+        Integer newSeq = last + 1;
+
+        StringBuilder stringSeq = new StringBuilder();
+        while (stringSeq.length() < zeroToRepeatTimes) {
+            stringSeq.append("0");
+        }
+
+        stringSeq.append(newSeq);
+
+        pEcritureComptable.setReference(pEcritureComptable.getJournal().getCode() + "-" + cal.get(Calendar.YEAR) + "/" + stringSeq);
+
+        SequenceEcritureComptable sequence = new SequenceEcritureComptable();
+        sequence.setAnnee(cal.get(Calendar.YEAR));
+        sequence.setDerniereValeur(last);
+        sequenceEcritureComptableService.upsert(sequence);
     }
 
     /**
